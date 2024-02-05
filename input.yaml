@@ -1,0 +1,5 @@
+environment:
+  temperature: 20  
+  humidity: 
+    hv: 40, 60
+foobar: [1,2]

@@ -1,0 +1,10 @@
+*.geojson
+*.tif
+*.tif*
+__pycache__/
+test_data
+build/
+dist/
+**/*.egg*
+test_ml_base/
+example.py

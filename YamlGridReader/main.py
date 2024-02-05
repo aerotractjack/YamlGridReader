@@ -5,9 +5,12 @@ import copy
 
 class YamlGridReader:
 
-    def __init__(self, yaml_path):
-        with open(yaml_path, 'r') as f:
-            self.contents = yaml.safe_load(f)
+    def __init__(self, yaml_path=None, yaml_dict=None):
+        if yaml_dict is not None:
+            self.contents = yaml_dict
+        elif yaml_path is not None:
+            with open(yaml_path, 'r') as f:
+                self.contents = yaml.safe_load(f)
 
     def flatten_dict(self, d, parent_key='', sep='.'):
         items = []
@@ -46,12 +49,18 @@ class YamlGridReader:
             d[parts[-1]] = value
         return result_dict
     
-    @classmethod
-    def FromPath(cls, yaml_path):
-        self = cls(yaml_path)
+    def main(self):
         flattened = self.flatten_dict(self.contents)
         listed = self.listify_dict(flattened)
         combinations = list(itertools.product(*listed.values()))
         flat_dicts = [dict(zip(listed.keys(), values)) for values in combinations]
         param_list = [self.unflatten_dict(d) for d in flat_dicts]
         return param_list
+    
+    @classmethod
+    def FromPath(cls, yaml_path):
+        return cls(yaml_path=yaml_path).main()
+        
+    @classmethod
+    def FromDict(cls, yaml_dict):
+        return cls(yaml_dict=yaml_dict).main()

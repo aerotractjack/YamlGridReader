@@ -36,7 +36,7 @@ class YamlGridReader:
                     v = [float(vi) for vi in v]
                 elif re.search(r'^[+-]?\d+$', v[0]):
                     v = [int(vi) for vi in v]
-            elif not isinstance(v, list):
+            else:
                 v = [v]
             dc[k] = v
         return dc
@@ -57,10 +57,35 @@ class YamlGridReader:
         return result_dict
     
     def main(self):
+        # flatten dict for easier processing
         flattened = self.flatten_dict(self.contents)
+        # turn dict elements into lists for iterating
         listed = self.listify_dict(flattened)
+        # collect a list of the keys in the dict that are empty
+        # must be filled in w/ placeholder before creating grid
+        empty_keys = []
+        for k,v in listed.items():
+            if not isinstance(v, (str,list)):
+                continue
+            if isinstance(v, list) and len(v) == 0:
+                empty_keys.append(k)
+                listed[k] = ["placeholder"]
+            elif isinstance(v, str) and len(v) == 0:
+                empty_keys.append(k)
+                listed[k] = "placeholder"
+        # get combinations (grid) from listified values
         combinations = list(itertools.product(*listed.values()))
+        # recreate flattened dicts from combinations
         flat_dicts = [dict(zip(listed.keys(), values)) for values in combinations]
+        # un-placeholder the previously empty config elements
+        for i in range(len(flat_dicts)):
+            fd = flat_dicts[i].copy()
+            for ek in empty_keys:
+                if isinstance(fd[ek], str):
+                    fd[ek] = ""
+                elif isinstance(fd[ek], list):
+                    fd[ek] = []
+            flat_dicts[i] = fd.copy()
         param_list = [self.unflatten_dict(d) for d in flat_dicts]
         return param_list
     
